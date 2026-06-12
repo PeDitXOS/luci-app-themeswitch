@@ -163,6 +163,7 @@ jobs:
           mkdir -p package/luci-app-themeswitch
           cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
           
+          rm -f .config
           make defconfig
           
           if [ "${{ matrix.ver }}" == "apk" ]; then
@@ -174,16 +175,18 @@ jobs:
           fi
           
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
-          
-          # Added IGNORE_ERRORS=m to bypass unrelated feed prereq failures
-          make package/luci-app-themeswitch/compile -j$(nproc) V=s IGNORE_ERRORS=m
+          make defconfig
+          make package/luci-app-themeswitch/compile -j$(nproc) V=s
           
           mkdir -p ../artifacts
-          EXT="${{ matrix.ver }}"
-          find bin/ -type f \( -name "*themeswitch*.${EXT}" -o -name "*themeswitch*.apk" -o -name "*themeswitch*.ipk" \) -exec cp {} ../artifacts/ \; 2>/dev/null || true
+          # Added renaming logic to include version, format, and platform dynamically to prevent overwrite
+          find bin/ -type f -name "*themeswitch*" | while read -r file; do
+            ext="${file##*.}"
+            cp "$file" "../artifacts/luci-app-themeswitch-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}.${ext}"
+          done
           
           echo "=== Generated Files ==="
-          ls -la ../artifacts/ || echo "No files!"
+          ls -la ../artifacts/ || echo "No files found!"
 
       - name: Save Version File
         if: matrix.platform == 'x86_64' && matrix.ver == 'ipk'
@@ -191,7 +194,6 @@ jobs:
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
-        continue-on-error: true
         with:
           name: themeswitch-${{ matrix.ver }}-${{ matrix.platform }}
           path: artifacts/
@@ -220,8 +222,7 @@ jobs:
           tag_name: ${{ steps.rel_ver.outputs.version }}
           name: "ThemeSwitch ${{ steps.rel_ver.outputs.version }}"
           files: |
-            all-assets/*.ipk
-            all-assets/*.apk
+            all-assets/luci-app-themeswitch-*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
