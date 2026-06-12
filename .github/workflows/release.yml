@@ -1,4 +1,4 @@
-name: Release ThemeSwitch (Fixed APK Toolchain Links)
+name: Release ThemeSwitch (Direct Version Read)
 
 on:
   workflow_dispatch:
@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ===== IPK (24.10.0 STABLE - SDK) =====
+          # ===== IPK (24.10.0 STABLE) =====
           - platform: x86_64
             url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
             ver: "ipk"
@@ -76,8 +76,7 @@ jobs:
             url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/bcm47xx/generic/openwrt-sdk-24.10.0-bcm47xx-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst
             ver: "ipk"
 
-          # ===== APK (SNAPSHOTS - TOOLCHAIN) =====
-          # توجه: در اسنپ‌شات‌ها برای برخی معماری‌ها فقط Toolchain موجود است که برای کامپایل پکیج کافیست
+          # ===== APK (SNAPSHOTS) =====
           - platform: x86_64
             url_sdk: http://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
@@ -120,9 +119,8 @@ jobs:
           - platform: mips_4kec
             url_sdk: http://downloads.openwrt.org/snapshots/targets/ramips/mt7620/openwrt-sdk-ramips-mt7620_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
-          # ✅ اصلاح شده: bcm47xx از toolchain استفاده می‌کند و _eabi ندارد
           - platform: mips_mips32
-            url_sdk: http://downloads.openwrt.org/snapshots/targets/bcm47xx/generic/openwrt-toolchain-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/bcm47xx/generic/openwrt-sdk-bcm47xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: mipsel_24kc
             url_sdk: http://downloads.openwrt.org/snapshots/targets/ramips/mt7621/openwrt-sdk-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst
@@ -130,9 +128,8 @@ jobs:
           - platform: mipsel_74kc
             url_sdk: http://downloads.openwrt.org/snapshots/targets/ramips/rt3883/openwrt-sdk-ramips-rt3883_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
-          # ✅ اصلاح شده: bcm47xx از toolchain استفاده می‌کند و _eabi ندارد
           - platform: mipsel_mips32
-            url_sdk: http://downloads.openwrt.org/snapshots/targets/bcm47xx/generic/openwrt-toolchain-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: https://downloads.openwrt.org/snapshots/targets/bcm47xx/generic/openwrt-sdk-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
 
     steps:
@@ -151,12 +148,11 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd
 
-      - name: Download & Setup SDK/Toolchain
+      - name: Download & Setup SDK
         run: |
           wget ${{ matrix.url_sdk }} -O sdk.tar.zst
           mkdir sdk && tar --use-compress-program=unzstd -xf sdk.tar.zst -C sdk --strip-components=1
           cd sdk
-          # Toolchain هم مانند SDK دارای scripts/feeds است
           ./scripts/feeds update -a && ./scripts/feeds install -a
 
       - name: Configure & Compile (${{ matrix.ver }})
