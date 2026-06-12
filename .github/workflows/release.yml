@@ -170,20 +170,22 @@ jobs:
           
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
           make defconfig
-          make package/luci-app-themeswitch/compile -j$(nproc) V=s || true
+          # Removed "|| true" to ensure we catch real build errors
+          make package/luci-app-themeswitch/compile -j$(nproc) V=s
           
-          mkdir -p ../artifacts/${{ matrix.ver }}
+          # Changed destination path to prevent deeply nested directories
+          mkdir -p ../artifacts
           EXT="${{ matrix.ver }}"
-          find bin/ -type f -name "*themeswitch*.${EXT}" -exec cp {} ../artifacts/${EXT}/ \; 2>/dev/null || true
+          # OpenWrt APKs might be saved with .apk extension, matching both just in case
+          find bin/ -type f \( -name "*themeswitch*.${EXT}" -o -name "*themeswitch*.apk" -o -name "*themeswitch*.ipk" \) -exec cp {} ../artifacts/ \; 2>/dev/null || true
           
           echo "=== Generated Files ==="
-          ls -la ../artifacts/${EXT}/ || echo "No files!"
+          ls -la ../artifacts/ || echo "No files!"
 
       - name: Save Version File
         if: matrix.platform == 'x86_64' && matrix.ver == 'ipk'
         run: echo "${{ steps.get_version.outputs.version }}" > artifacts/version.txt
 
-      # ✅ تغییر حیاتی: حذف شرط if و اضافه کردن continue-on-error
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         continue-on-error: true
@@ -191,7 +193,7 @@ jobs:
           name: themeswitch-${{ matrix.ver }}-${{ matrix.platform }}
           path: artifacts/
           retention-days: 1
-          if-no-files-found: warn
+          if-no-files-found: error
 
   release:
     name: Create Unified Release
@@ -214,7 +216,10 @@ jobs:
         with:
           tag_name: ${{ steps.rel_ver.outputs.version }}
           name: "ThemeSwitch ${{ steps.rel_ver.outputs.version }}"
-          files: all-assets/**/*.ipk all-assets/**/*.apk
+          # Flattened pattern to accurately match files merged into the root directory
+          files: |
+            all-assets/*.ipk
+            all-assets/*.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
