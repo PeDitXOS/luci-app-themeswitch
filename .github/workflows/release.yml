@@ -1,4 +1,4 @@
-name: Release ThemeSwitch (24.10 IPK + 25.12 APK)
+name: Release ThemeSwitch (Verified SDKs)
 
 on:
   workflow_dispatch:
@@ -99,7 +99,6 @@ jobs:
             *)      TARGET_DIR="${{ matrix.arch }}"; FILE_ARCH="${{ matrix.arch }}" ;;
           esac
           
-          # لینک مستقیم نسخه 25.12.0 برای APK
           SDK_URL="http://downloads.openwrt.org/releases/25.12.0/targets/$TARGET_DIR/openwrt-sdk-25.12.0-$FILE_ARCH_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
           
           echo "🔽 Trying APK (25.12.0): $SDK_URL"
