@@ -1,4 +1,4 @@
-name: Release ThemeSwitch (Passwall2 Method Fixed)
+name: Release ThemeSwitch (Final Working Version)
 
 on:
   workflow_dispatch:
@@ -140,11 +140,12 @@ jobs:
         run: |
           mkdir -p src_projects
           git clone https://github.com/peditx/luci-app-themeswitch.git src_projects/luci-app-themeswitch
-          # خواندن PKG_RELEASE چون PKG_VERSION ندارید
-          VER=$(grep 'PKG_RELEASE' src_projects/luci-app-themeswitch/Makefile | awk -F ':=' '{print $2}' | tr -d ' \n\r')
-          [ -z "$VER" ] && VER="1.0.5"
+          
+          # ✅ خواندن مستقیم PKG_RELEASE چون PKG_VERSION وجود ندارد
+          VER=$(grep '^PKG_RELEASE' src_projects/luci-app-themeswitch/Makefile | awk -F ':=' '{print $2}' | tr -d ' \n\r')
+          if [ -z "$VER" ]; then VER="1.0.5"; fi
           echo "version=v$VER" >> $GITHUB_OUTPUT
-          echo "🏷️ Detected Version: v$VER"
+          echo "🏷️ Detected Version from PKG_RELEASE: v$VER"
 
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd
@@ -162,15 +163,13 @@ jobs:
           mkdir -p package/luci-app-themeswitch
           cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
           
-          # ✅ تنظیمات حیاتی برای اجبار SDK به تولید فرمت مورد نظر (متد Passwall)
-          if [ "${{ matrix.ver }}" == "ipk" ]; then
-            # غیرفعال کردن APK برای تولید IPK
-            sed -i '/CONFIG_USE_APK/d' .config 2>/dev/null || true
-            echo "CONFIG_USE_APK=n" >> .config
-          else
-            # فعال کردن APK برای تولید فرمت جدید
-            sed -i '/CONFIG_USE_APK/d' .config 2>/dev/null || true
+          # ✅ حیاتی: تنظیم فرمت خروجی قبل از make defconfig (متد Passwall)
+          if [ "${{ matrix.ver }}" == "apk" ]; then
             echo "CONFIG_USE_APK=y" >> .config
+            echo "CONFIG_OPKG=n" >> .config
+          else
+            echo "CONFIG_USE_APK=n" >> .config
+            echo "CONFIG_OPKG=y" >> .config
           fi
           
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
@@ -178,13 +177,12 @@ jobs:
           make package/luci-app-themeswitch/compile -j$(nproc) V=s || true
           
           mkdir -p ../artifacts/${{ matrix.ver }}
-          # جستجوی کامل در تمام زیرپوشه‌های bin
           EXT="${{ matrix.ver }}"
+          # جستجوی کامل در تمام زیرپوشه‌های bin
           find bin/ -type f -name "*themeswitch*.${EXT}" -exec cp {} ../artifacts/${EXT}/ \; 2>/dev/null || true
           
-          # دیباگ: لیست فایل‌های تولید شده
-          echo "=== Generated Files ==="
-          ls -R ../artifacts/${EXT}/ || echo "No files found!"
+          echo "=== Generated ${EXT} Files ==="
+          ls -la ../artifacts/${EXT}/ || echo "⚠️ No ${EXT} files generated!"
 
       - name: Save Version File
         if: matrix.platform == 'x86_64' && matrix.ver == 'ipk'
