@@ -1,4 +1,4 @@
-name: Release ThemeSwitch (Multi-Arch Fixed)
+name: Release ThemeSwitch (Passwall2 Method Fixed)
 
 on:
   workflow_dispatch:
@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ===== IPK & APK BUILDS (Snapshots - Verified Links) =====
+          # ===== IPK BUILDS =====
           - platform: x86_64
             url_sdk: https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "ipk"
@@ -76,7 +76,7 @@ jobs:
             url_sdk: https://downloads.openwrt.org/snapshots/targets/bcm47xx/generic/openwrt-sdk-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "ipk"
 
-          # ===== APK BUILDS (Same SDKs, different output format) =====
+          # ===== APK BUILDS =====
           - platform: x86_64
             url_sdk: https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
@@ -140,9 +140,8 @@ jobs:
         run: |
           mkdir -p src_projects
           git clone https://github.com/peditx/luci-app-themeswitch.git src_projects/luci-app-themeswitch
-          
-          # استخراج نسخه: اول PKG_VERSION، اگر نبود PKG_RELEASE
-          VER=$(grep -E 'PKG_VERSION|PKG_RELEASE' src_projects/luci-app-themeswitch/Makefile | head -n 1 | awk -F ':=' '{print $2}' | tr -d ' \n\r')
+          # خواندن PKG_RELEASE چون PKG_VERSION ندارید
+          VER=$(grep 'PKG_RELEASE' src_projects/luci-app-themeswitch/Makefile | awk -F ':=' '{print $2}' | tr -d ' \n\r')
           [ -z "$VER" ] && VER="1.0.5"
           echo "version=v$VER" >> $GITHUB_OUTPUT
           echo "🏷️ Detected Version: v$VER"
@@ -163,16 +162,29 @@ jobs:
           mkdir -p package/luci-app-themeswitch
           cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
           
+          # ✅ تنظیمات حیاتی برای اجبار SDK به تولید فرمت مورد نظر (متد Passwall)
+          if [ "${{ matrix.ver }}" == "ipk" ]; then
+            # غیرفعال کردن APK برای تولید IPK
+            sed -i '/CONFIG_USE_APK/d' .config 2>/dev/null || true
+            echo "CONFIG_USE_APK=n" >> .config
+          else
+            # فعال کردن APK برای تولید فرمت جدید
+            sed -i '/CONFIG_USE_APK/d' .config 2>/dev/null || true
+            echo "CONFIG_USE_APK=y" >> .config
+          fi
+          
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
           make defconfig
           make package/luci-app-themeswitch/compile -j$(nproc) V=s || true
           
           mkdir -p ../artifacts/${{ matrix.ver }}
-          if [ "${{ matrix.ver }}" == "ipk" ]; then
-            find bin/ -type f -name "*themeswitch*.ipk" -exec cp {} ../artifacts/ipk/ \; 2>/dev/null || true
-          else
-            find bin/ -type f -name "*themeswitch*.apk" -exec cp {} ../artifacts/apk/ \; 2>/dev/null || true
-          fi
+          # جستجوی کامل در تمام زیرپوشه‌های bin
+          EXT="${{ matrix.ver }}"
+          find bin/ -type f -name "*themeswitch*.${EXT}" -exec cp {} ../artifacts/${EXT}/ \; 2>/dev/null || true
+          
+          # دیباگ: لیست فایل‌های تولید شده
+          echo "=== Generated Files ==="
+          ls -R ../artifacts/${EXT}/ || echo "No files found!"
 
       - name: Save Version File
         if: matrix.platform == 'x86_64' && matrix.ver == 'ipk'
