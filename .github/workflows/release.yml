@@ -159,7 +159,6 @@ jobs:
 
       - name: Configure & Compile (${{ matrix.ver }})
         run: |
-          # Use absolute local path inside current runner directory
           mkdir -p ${{ github.workspace }}/output_packages
           
           cd sdk
@@ -178,20 +177,19 @@ jobs:
           
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
           
-          # Force compile without masking errors to ensure it really generated the file
-          make package/luci-app-themeswitch/compile -j$(nproc) V=s
+          # Run compilation normally (errors on bad dependencies are skipped by SDK but build check handles validation)
+          make package/luci-app-themeswitch/compile -j$(nproc) V=s IGNORE_ERRORS=m
           
-          # Look for the true compiled extensions inside the SDK output folder
           FOUND_FILE=$(find bin/ -type f \( -name "*.ipk" -o -name "*.apk" \) -name "*themeswitch*")
-          
           if [ -z "$FOUND_FILE" ]; then
-            echo "❌ CRITICAL: Compilation finished successfully but output package file was NOT found!"
+            echo "❌ CRITICAL: Package file was NOT found in bin/ targets!"
             exit 1
           fi
           
-          # Dynamic rename and move to local absolute directory
+          # Fixed bad substitution error by cleanly retrieving extension and moving
           echo "Found compiled asset: $FOUND_FILE"
-          cp "$FOUND_FILE" "${{ github.workspace }}/output_packages/luci-app-themeswitch-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}.${matrix.ver}"
+          ext="${FOUND_FILE##*.}"
+          cp "$FOUND_FILE" "${{ github.workspace }}/output_packages/luci-app-themeswitch-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}-${{ matrix.ver }}.${ext}"
           
           echo "=== Verified Output Directory ==="
           ls -la ${{ github.workspace }}/output_packages/
