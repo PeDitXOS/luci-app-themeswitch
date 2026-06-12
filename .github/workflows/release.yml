@@ -1,4 +1,4 @@
-name: Release ThemeSwitch (Correct Architecture Mapping)
+name: Release ThemeSwitch (Passwall Style Matrix)
 
 on:
   workflow_dispatch:
@@ -27,31 +27,124 @@ jobs:
           echo "version=v$VERSION" >> $GITHUB_OUTPUT
 
   build:
-    name: Build ${{ matrix.arch }}
+    name: Build ${{ matrix.ver }}-${{ matrix.platform }}
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        arch:
-          - x86_64
-          - aarch64_generic
-          - aarch64_cortex-a53
-          - aarch64_cortex-a72
-          - arm_cortex-a5_vfpv4
-          - arm_cortex-a7
-          - arm_cortex-a7_neon-vfpv4
-          - arm_cortex-a8_vfpv3
-          - arm_cortex-a9
-          - arm_cortex-a9_neon
-          - arm_cortex-a9_vfpv3-d16
-          - arm_cortex-a15_neon-vfpv4
-          - mips_24kc
-          - mips_4kec
-          - mips_mips32
-          - mipsel_24kc
-          - mipsel_74kc
-          - mipsel_mips32
+        include:
+          # ===== IPK BUILDS (24.10.0 STABLE) =====
+          - platform: x86_64
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: aarch64_generic
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/armsr/armv8/openwrt-sdk-24.10.0-armsr-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: aarch64_cortex-a53
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/bcm27xx/bcm2710/openwrt-sdk-24.10.0-bcm27xx-bcm2710_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: aarch64_cortex-a72
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/bcm27xx/bcm2711/openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: arm_cortex-a5_vfpv4
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/at91/sama5/openwrt-sdk-24.10.0-at91-sama5_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: arm_cortex-a7
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/sunxi/cortexa7/openwrt-sdk-24.10.0-sunxi-cortexa7_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: arm_cortex-a7_neon-vfpv4
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/ipq40xx/generic/openwrt-sdk-24.10.0-ipq40xx-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: arm_cortex-a8_vfpv3
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/sunxi/cortexa8/openwrt-sdk-24.10.0-sunxi-cortexa8_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: arm_cortex-a9
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/mvebu/cortexa9/openwrt-sdk-24.10.0-mvebu-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: arm_cortex-a9_neon
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/imx/cortexa9/openwrt-sdk-24.10.0-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: arm_cortex-a9_vfpv3-d16
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/kirkwood/generic/openwrt-sdk-24.10.0-kirkwood-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: arm_cortex-a15_neon-vfpv4
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/ipq806x/generic/openwrt-sdk-24.10.0-ipq806x-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: mips_24kc
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/ath79/generic/openwrt-sdk-24.10.0-ath79-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: mips_4kec
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/ramips/mt7620/openwrt-sdk-24.10.0-ramips-mt7620_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: mips_mips32
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/bcm47xx/generic/openwrt-sdk-24.10.0-bcm47xx-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: mipsel_24kc
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/ramips/mt7621/openwrt-sdk-24.10.0-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: mipsel_74kc
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/ramips/rt3883/openwrt-sdk-24.10.0-ramips-rt3883_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+          - platform: mipsel_mips32
+            url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/bcm47xx/generic/openwrt-sdk-24.10.0-bcm47xx-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+            ver: "ipk"
+
+          # ===== APK BUILDS (25.12.0 RELEASE) =====
+          - platform: x86_64
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/x86/64/openwrt-sdk-25.12.0-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: aarch64_generic
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/armsr/armv8/openwrt-sdk-25.12.0-armsr-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: aarch64_cortex-a53
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2710/openwrt-sdk-25.12.0-bcm27xx-bcm2710_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: aarch64_cortex-a72
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2711/openwrt-sdk-25.12.0-bcm27xx-bcm2711_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: arm_cortex-a5_vfpv4
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/at91/sama5/openwrt-sdk-25.12.0-at91-sama5_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: arm_cortex-a7
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/sunxi/cortexa7/openwrt-sdk-25.12.0-sunxi-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: arm_cortex-a7_neon-vfpv4
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ipq40xx/generic/openwrt-sdk-25.12.0-ipq40xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: arm_cortex-a8_vfpv3
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/sunxi/cortexa8/openwrt-sdk-25.12.0-sunxi-cortexa8_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: arm_cortex-a9
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/mvebu/cortexa9/openwrt-sdk-25.12.0-mvebu-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: arm_cortex-a9_neon
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/imx/cortexa9/openwrt-sdk-25.12.0-imx-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: arm_cortex-a9_vfpv3-d16
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/kirkwood/generic/openwrt-sdk-25.12.0-kirkwood-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: arm_cortex-a15_neon-vfpv4
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ipq806x/generic/openwrt-sdk-25.12.0-ipq806x-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: mips_24kc
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ath79/generic/openwrt-sdk-25.12.0-ath79-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: mips_4kec
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ramips/mt7620/openwrt-sdk-25.12.0-ramips-mt7620_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: mips_mips32
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/bcm47xx/generic/openwrt-sdk-25.12.0-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: mipsel_24kc
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ramips/mt7621/openwrt-sdk-25.12.0-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: mipsel_74kc
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ramips/rt3883/openwrt-sdk-25.12.0-ramips-rt3883_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
+          - platform: mipsel_mips32
+            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/bcm47xx/generic/openwrt-sdk-25.12.0-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            ver: "apk"
 
     steps:
       - uses: actions/checkout@v4
@@ -59,107 +152,40 @@ jobs:
         run: |
           mkdir -p src_projects
           git clone https://github.com/peditx/luci-app-themeswitch.git src_projects/luci-app-themeswitch
-      - name: Install Deps
-        run: sudo apt-get update && sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd
 
-      # ================= BUILD IPK (24.10.0 STABLE) =================
-      - name: Build IPK (${{ matrix.arch }})
+      - name: Install Dependencies
         run: |
-          # نگاشت دقیق معماری به Target/Subtarget واقعی در سرور OpenWrt
-          case "${{ matrix.arch }}" in
-            x86_64)               SDK_PATH="x86/64"; SDK_FILE="x86-64" ;;
-            aarch64_generic)      SDK_PATH="armsr/armv8"; SDK_FILE="armsr-armv8" ;;
-            aarch64_cortex-a53)   SDK_PATH="bcm27xx/bcm2710"; SDK_FILE="bcm27xx-bcm2710" ;;
-            aarch64_cortex-a72)   SDK_PATH="bcm27xx/bcm2711"; SDK_FILE="bcm27xx-bcm2711" ;;
-            arm_cortex-a5_vfpv4)  SDK_PATH="at91/sama5d3"; SDK_FILE="at91-sama5d3" ;;
-            arm_cortex-a7)        SDK_PATH="sunxi/cortexa7"; SDK_FILE="sunxi-cortexa7" ;;
-            arm_cortex-a7_neon-vfpv4) SDK_PATH="ipq40xx/generic"; SDK_FILE="ipq40xx-generic" ;;
-            arm_cortex-a8_vfpv3)  SDK_PATH="sunxi/cortexa8"; SDK_FILE="sunxi-cortexa8" ;;
-            arm_cortex-a9)        SDK_PATH="mvebu/cortexa9"; SDK_FILE="mvebu-cortexa9" ;;
-            arm_cortex-a9_neon)   SDK_PATH="imx/cortexa9"; SDK_FILE="imx-cortexa9" ;;
-            arm_cortex-a9_vfpv3-d16) SDK_PATH="kirkwood/generic"; SDK_FILE="kirkwood-generic" ;;
-            arm_cortex-a15_neon-vfpv4) SDK_PATH="ipq806x/generic"; SDK_FILE="ipq806x-generic" ;;
-            mips_24kc)            SDK_PATH="ath79/generic"; SDK_FILE="ath79-generic" ;;
-            mips_4kec)            SDK_PATH="ramips/mt7620"; SDK_FILE="ramips-mt7620" ;;
-            mips_mips32)          SDK_PATH="bcm47xx/generic"; SDK_FILE="bcm47xx-generic" ;;
-            mipsel_24kc)          SDK_PATH="ramips/mt7621"; SDK_FILE="ramips-mt7621" ;;
-            mipsel_74kc)          SDK_PATH="ramips/rt305x"; SDK_FILE="ramips-rt305x" ;;
-            mipsel_mips32)        SDK_PATH="ramips/rt3883"; SDK_FILE="ramips-rt3883" ;;
-            *) echo "❌ Unknown arch: ${{ matrix.arch }}"; exit 1 ;;
-          esac
-          
-          SDK_URL="http://downloads.openwrt.org/releases/24.10.0/targets/$SDK_PATH/openwrt-sdk-24.10.0-$SDK_FILE_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-          
-          echo "🔽 Trying IPK (24.10.0): $SDK_URL"
-          if ! wget -q --spider "$SDK_URL"; then
-            echo "⚠️ No IPK SDK for ${{ matrix.arch }} at $SDK_PATH"
-            exit 0
-          fi
-          
-          wget "$SDK_URL" -O sdk_ipk.tar.zst
-          mkdir sdk_ipk && tar --use-compress-program=unzstd -xf sdk_ipk.tar.zst -C sdk_ipk --strip-components=1
-          cd sdk_ipk
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd
+
+      - name: Download & Setup SDK
+        run: |
+          wget ${{ matrix.url_sdk }} -O sdk.tar.zst
+          mkdir sdk && tar --use-compress-program=unzstd -xf sdk.tar.zst -C sdk --strip-components=1
+          cd sdk
           ./scripts/feeds update -a && ./scripts/feeds install -a
+
+      - name: Configure & Compile (${{ matrix.ver }})
+        run: |
+          cd sdk
           mkdir -p package/luci-app-themeswitch
           cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
+          
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
           make defconfig
           make package/luci-app-themeswitch/compile -j$(nproc) V=s || true
           
-          mkdir -p ../artifacts/ipk
-          find bin/ -type f \( -iname "luci-app-themeswitch_*.ipk" -o -iname "luci-app-themeswitch-*.ipk" \) -exec cp {} ../artifacts/ipk/ \; 2>/dev/null || true
-
-      # ================= BUILD APK (25.12.0 RELEASE) =================
-      - name: Build APK (${{ matrix.arch }})
-        run: |
-          # همان نگاشت برای نسخه 25.12.0
-          case "${{ matrix.arch }}" in
-            x86_64)               SDK_PATH="x86/64"; SDK_FILE="x86-64" ;;
-            aarch64_generic)      SDK_PATH="armsr/armv8"; SDK_FILE="armsr-armv8" ;;
-            aarch64_cortex-a53)   SDK_PATH="bcm27xx/bcm2710"; SDK_FILE="bcm27xx-bcm2710" ;;
-            aarch64_cortex-a72)   SDK_PATH="bcm27xx/bcm2711"; SDK_FILE="bcm27xx-bcm2711" ;;
-            arm_cortex-a5_vfpv4)  SDK_PATH="at91/sama5d3"; SDK_FILE="at91-sama5d3" ;;
-            arm_cortex-a7)        SDK_PATH="sunxi/cortexa7"; SDK_FILE="sunxi-cortexa7" ;;
-            arm_cortex-a7_neon-vfpv4) SDK_PATH="ipq40xx/generic"; SDK_FILE="ipq40xx-generic" ;;
-            arm_cortex-a8_vfpv3)  SDK_PATH="sunxi/cortexa8"; SDK_FILE="sunxi-cortexa8" ;;
-            arm_cortex-a9)        SDK_PATH="mvebu/cortexa9"; SDK_FILE="mvebu-cortexa9" ;;
-            arm_cortex-a9_neon)   SDK_PATH="imx/cortexa9"; SDK_FILE="imx-cortexa9" ;;
-            arm_cortex-a9_vfpv3-d16) SDK_PATH="kirkwood/generic"; SDK_FILE="kirkwood-generic" ;;
-            arm_cortex-a15_neon-vfpv4) SDK_PATH="ipq806x/generic"; SDK_FILE="ipq806x-generic" ;;
-            mips_24kc)            SDK_PATH="ath79/generic"; SDK_FILE="ath79-generic" ;;
-            mips_4kec)            SDK_PATH="ramips/mt7620"; SDK_FILE="ramips-mt7620" ;;
-            mips_mips32)          SDK_PATH="bcm47xx/generic"; SDK_FILE="bcm47xx-generic" ;;
-            mipsel_24kc)          SDK_PATH="ramips/mt7621"; SDK_FILE="ramips-mt7621" ;;
-            mipsel_74kc)          SDK_PATH="ramips/rt305x"; SDK_FILE="ramips-rt305x" ;;
-            mipsel_mips32)        SDK_PATH="ramips/rt3883"; SDK_FILE="ramips-rt3883" ;;
-            *) echo "❌ Unknown arch: ${{ matrix.arch }}"; exit 1 ;;
-          esac
-          
-          SDK_URL="http://downloads.openwrt.org/releases/25.12.0/targets/$SDK_PATH/openwrt-sdk-25.12.0-$SDK_FILE_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
-          
-          echo "🔽 Trying APK (25.12.0): $SDK_URL"
-          if ! wget -q --spider "$SDK_URL"; then
-            echo "⚠️ No APK SDK for ${{ matrix.arch }} at $SDK_PATH"
-            exit 0
+          mkdir -p ../artifacts/${{ matrix.ver }}
+          if [ "${{ matrix.ver }}" == "ipk" ]; then
+            find bin/ -type f \( -iname "luci-app-themeswitch_*.ipk" -o -iname "luci-app-themeswitch-*.ipk" \) -exec cp {} ../artifacts/ipk/ \; 2>/dev/null || true
+          else
+            find bin/ -type f \( -iname "luci-app-themeswitch_*.apk" -o -iname "luci-app-themeswitch-*.apk" \) -exec cp {} ../artifacts/apk/ \; 2>/dev/null || true
           fi
-          
-          wget "$SDK_URL" -O sdk_apk.tar.zst
-          mkdir sdk_apk && tar --use-compress-program=unzstd -xf sdk_apk.tar.zst -C sdk_apk --strip-components=1
-          cd sdk_apk
-          ./scripts/feeds update -a && ./scripts/feeds install -a
-          mkdir -p package/luci-app-themeswitch
-          cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
-          echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
-          make defconfig
-          make package/luci-app-themeswitch/compile -j$(nproc) V=s || true
-          
-          mkdir -p ../artifacts/apk
-          find bin/ -type f \( -iname "luci-app-themeswitch_*.apk" -o -iname "luci-app-themeswitch-*.apk" \) -exec cp {} ../artifacts/apk/ \; 2>/dev/null || true
 
       - uses: actions/upload-artifact@v4
         if: hashFiles('artifacts/**') != ''
         with:
-          name: themeswitch-${{ matrix.arch }}
+          name: themeswitch-${{ matrix.ver }}-${{ matrix.platform }}
           path: artifacts/
           retention-days: 1
 
