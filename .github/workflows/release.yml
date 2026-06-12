@@ -1,4 +1,4 @@
-name: Release ThemeSwitch (Passwall Style Matrix)
+name: Release ThemeSwitch (Direct Version Read)
 
 on:
   workflow_dispatch:
@@ -13,28 +13,14 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  prepare:
-    name: Extract Version
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.get_ver.outputs.version }}
-    steps:
-      - run: git clone https://github.com/peditx/luci-app-themeswitch.git src
-      - id: get_ver
-        run: |
-          VERSION=$(grep -E 'PKG_VERSION\s*:=\s*' src/Makefile | sed -E 's/PKG_VERSION\s*:=\s*//' | tr -d ' \n\r')
-          [ -z "$VERSION" ] && VERSION="1.0.0"
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-
   build:
     name: Build ${{ matrix.ver }}-${{ matrix.platform }}
-    needs: prepare
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          # ===== IPK BUILDS (24.10.0 STABLE) =====
+          # ===== IPK (24.10.0 STABLE) =====
           - platform: x86_64
             url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
             ver: "ipk"
@@ -90,73 +76,77 @@ jobs:
             url_sdk: http://downloads.openwrt.org/releases/24.10.0/targets/bcm47xx/generic/openwrt-sdk-24.10.0-bcm47xx-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst
             ver: "ipk"
 
-          # ===== APK BUILDS (25.12.0 RELEASE) =====
+          # ===== APK (SNAPSHOTS) =====
           - platform: x86_64
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/x86/64/openwrt-sdk-25.12.0-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: aarch64_generic
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/armsr/armv8/openwrt-sdk-25.12.0-armsr-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/armsr/armv8/openwrt-sdk-armsr-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: aarch64_cortex-a53
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2710/openwrt-sdk-25.12.0-bcm27xx-bcm2710_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/bcm27xx/bcm2710/openwrt-sdk-bcm27xx-bcm2710_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: aarch64_cortex-a72
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2711/openwrt-sdk-25.12.0-bcm27xx-bcm2711_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/bcm27xx/bcm2711/openwrt-sdk-bcm27xx-bcm2711_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a5_vfpv4
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/at91/sama5/openwrt-sdk-25.12.0-at91-sama5_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/at91/sama5/openwrt-sdk-at91-sama5_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a7
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/sunxi/cortexa7/openwrt-sdk-25.12.0-sunxi-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/sunxi/cortexa7/openwrt-sdk-sunxi-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a7_neon-vfpv4
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ipq40xx/generic/openwrt-sdk-25.12.0-ipq40xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/ipq40xx/generic/openwrt-sdk-ipq40xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a8_vfpv3
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/sunxi/cortexa8/openwrt-sdk-25.12.0-sunxi-cortexa8_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/sunxi/cortexa8/openwrt-sdk-sunxi-cortexa8_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a9
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/mvebu/cortexa9/openwrt-sdk-25.12.0-mvebu-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/mvebu/cortexa9/openwrt-sdk-mvebu-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a9_neon
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/imx/cortexa9/openwrt-sdk-25.12.0-imx-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/imx/cortexa9/openwrt-sdk-imx-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a9_vfpv3-d16
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/kirkwood/generic/openwrt-sdk-25.12.0-kirkwood-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/kirkwood/generic/openwrt-sdk-kirkwood-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a15_neon-vfpv4
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ipq806x/generic/openwrt-sdk-25.12.0-ipq806x-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/ipq806x/generic/openwrt-sdk-ipq806x-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: mips_24kc
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ath79/generic/openwrt-sdk-25.12.0-ath79-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/ath79/generic/openwrt-sdk-ath79-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: mips_4kec
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ramips/mt7620/openwrt-sdk-25.12.0-ramips-mt7620_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/ramips/mt7620/openwrt-sdk-ramips-mt7620_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: mips_mips32
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/bcm47xx/generic/openwrt-sdk-25.12.0-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/bcm47xx/generic/openwrt-sdk-bcm47xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: mipsel_24kc
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ramips/mt7621/openwrt-sdk-25.12.0-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/ramips/mt7621/openwrt-sdk-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: mipsel_74kc
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/ramips/rt3883/openwrt-sdk-25.12.0-ramips-rt3883_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/ramips/rt3883/openwrt-sdk-ramips-rt3883_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: mipsel_mips32
-            url_sdk: http://downloads.openwrt.org/releases/25.12.0/targets/bcm47xx/generic/openwrt-sdk-25.12.0-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: http://downloads.openwrt.org/snapshots/targets/bcm47xx/generic/openwrt-sdk-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
 
     steps:
       - uses: actions/checkout@v4
-      - name: Clone Source
+      
+      - name: Clone Source & Extract Version
+        id: get_version
         run: |
           mkdir -p src_projects
           git clone https://github.com/peditx/luci-app-themeswitch.git src_projects/luci-app-themeswitch
+          VERSION=$(grep -E 'PKG_VERSION\s*:=\s*' src_projects/luci-app-themeswitch/Makefile | sed -E 's/PKG_VERSION\s*:=\s*//' | tr -d ' \n\r')
+          [ -z "$VERSION" ] && VERSION="1.0.0"
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "🏷️ Detected Version: v$VERSION"
 
       - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd
+        run: sudo apt-get update && sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd
 
       - name: Download & Setup SDK
         run: |
@@ -182,6 +172,10 @@ jobs:
             find bin/ -type f \( -iname "luci-app-themeswitch_*.apk" -o -iname "luci-app-themeswitch-*.apk" \) -exec cp {} ../artifacts/apk/ \; 2>/dev/null || true
           fi
 
+      - name: Save Version File
+        if: matrix.platform == 'x86_64' && matrix.ver == 'ipk'
+        run: echo "${{ steps.get_version.outputs.version }}" > artifacts/version.txt
+
       - uses: actions/upload-artifact@v4
         if: hashFiles('artifacts/**') != ''
         with:
@@ -191,20 +185,27 @@ jobs:
 
   release:
     name: Create Unified Release
-    needs: [prepare, build]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: all-assets
           merge-multiple: true
+
+      - name: Read Version from Artifact
+        id: rel_ver
+        run: |
+          VER=$(cat all-assets/version.txt 2>/dev/null || echo "v1.0.0")
+          echo "version=$VER" >> $GITHUB_OUTPUT
+
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         if: hashFiles('all-assets/**') != ''
         with:
-          tag_name: ${{ needs.prepare.outputs.version }}
-          name: "ThemeSwitch ${{ needs.prepare.outputs.version }}"
-          files: all-assets/**/*
+          tag_name: ${{ steps.rel_ver.outputs.version }}
+          name: "ThemeSwitch ${{ steps.rel_ver.outputs.version }}"
+          files: all-assets/**/*.ipk all-assets/**/*.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
