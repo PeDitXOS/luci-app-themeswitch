@@ -159,7 +159,8 @@ jobs:
 
       - name: Configure & Compile (${{ matrix.ver }})
         run: |
-          mkdir -p ${{ github.workspace }}/artifacts
+          # Use absolute local path inside current runner directory
+          mkdir -p ${{ github.workspace }}/output_packages
           
           cd sdk
           mkdir -p package/luci-app-themeswitch
@@ -177,33 +178,33 @@ jobs:
           
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
           
-          # NO MORE IGNORE_ERRORS! If compilation fails, crash directly here.
+          # Force compile without masking errors to ensure it really generated the file
           make package/luci-app-themeswitch/compile -j$(nproc) V=s
           
-          # Hard validation check: verify if the package file actually exists in the build dir
-          FOUND_PACKAGES=$(find bin/ -type f \( -name "*.ipk" -o -name "*.apk" \) -name "*themeswitch*")
-          if [ -z "$FOUND_PACKAGES" ]; then
-             echo "❌ CRITICAL ERROR: OpenWrt SDK compiled successfully but NO .ipk or .apk package was found for themeswitch!"
-             exit 1
+          # Look for the true compiled extensions inside the SDK output folder
+          FOUND_FILE=$(find bin/ -type f \( -name "*.ipk" -o -name "*.apk" \) -name "*themeswitch*")
+          
+          if [ -z "$FOUND_FILE" ]; then
+            echo "❌ CRITICAL: Compilation finished successfully but output package file was NOT found!"
+            exit 1
           fi
           
-          echo "$FOUND_PACKAGES" | while read -r file; do
-            ext="${file##*.}"
-            cp "$file" "${{ github.workspace }}/artifacts/luci-app-themeswitch-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}-${{ matrix.ver }}.${ext}"
-          done
+          # Dynamic rename and move to local absolute directory
+          echo "Found compiled asset: $FOUND_FILE"
+          cp "$FOUND_FILE" "${{ github.workspace }}/output_packages/luci-app-themeswitch-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}.${matrix.ver}"
           
-          echo "=== Generated Files ==="
-          ls -la ${{ github.workspace }}/artifacts/
+          echo "=== Verified Output Directory ==="
+          ls -la ${{ github.workspace }}/output_packages/
 
       - name: Save Version File
         if: matrix.platform == 'x86_64' && matrix.ver == 'ipk'
-        run: echo "${{ steps.get_version.outputs.version }}" > ${{ github.workspace }}/artifacts/version.txt
+        run: echo "${{ steps.get_version.outputs.version }}" > ${{ github.workspace }}/output_packages/version.txt
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: themeswitch-${{ matrix.ver }}-${{ matrix.platform }}
-          path: ${{ github.workspace }}/artifacts/
+          path: ${{ github.workspace }}/output_packages/
           retention-days: 1
           if-no-files-found: error
 
