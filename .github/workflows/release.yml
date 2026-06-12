@@ -42,6 +42,7 @@ jobs:
           - platform: arm_cortex-a7_neon-vfpv4
             url_sdk: https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa7/openwrt-sdk-sunxi-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "ipk"
+          # ✅ Fixed the missing _eabi suffix based on your correction
           - platform: arm_cortex-a8_vfpv3
             url_sdk: https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa8/openwrt-sdk-sunxi-cortexa8_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "ipk"
@@ -99,7 +100,7 @@ jobs:
             url_sdk: https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa7/openwrt-sdk-sunxi-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a8_vfpv3
-            url_sdk: https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa8/openwrt-sdk-sunxi-cortexa8_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+            url_sdk: https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa8/openwrt-sdk-sunxi-cortexa8_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a9
             url_sdk: https://downloads.openwrt.org/snapshots/targets/bcm53xx/generic/openwrt-sdk-bcm53xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
