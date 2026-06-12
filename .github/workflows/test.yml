@@ -1,4 +1,4 @@
-name: Test Single Build ThemeSwitch
+name: Test Single APK Build ThemeSwitch
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    name: Test Build x86_64-ipk
+    name: Test Build x86_64-apk
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,8 +48,8 @@ jobs:
           cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
           
           make defconfig
-          echo "CONFIG_USE_APK=n" >> .config
-          echo "CONFIG_OPKG=y" >> .config
+          echo "CONFIG_USE_APK=y" >> .config
+          echo "CONFIG_OPKG=n" >> .config
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
           
           make package/luci-app-themeswitch/compile -j$(nproc) V=s IGNORE_ERRORS=m
@@ -73,7 +73,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: themeswitch-test-x86_64
+          name: themeswitch-test-apk-x86_64
           path: ${{ github.workspace }}/output_packages/
           retention-days: 1
           if-no-files-found: error
@@ -98,7 +98,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.rel_ver.outputs.version }}
-          name: "ThemeSwitch Test Build ${{ steps.rel_ver.outputs.version }}"
+          name: "ThemeSwitch Test APK Build ${{ steps.rel_ver.outputs.version }}"
           files: |
             all-assets/luci-app-themeswitch-*
           generate_release_notes: true
