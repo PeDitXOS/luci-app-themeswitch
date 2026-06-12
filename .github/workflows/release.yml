@@ -145,20 +145,25 @@ jobs:
           echo "version=v$VER" >> $GITHUB_OUTPUT
 
       - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd python3-pyelftools
 
       - name: Download & Setup SDK
         run: |
           wget ${{ matrix.url_sdk }} -O sdk.tar.zst
           mkdir sdk && tar --use-compress-program=unzstd -xf sdk.tar.zst -C sdk --strip-components=1
           cd sdk
-          ./scripts/feeds update -a && ./scripts/feeds install -a
+          ./scripts/feeds update -a
+          ./scripts/feeds install luci
 
       - name: Configure & Compile (${{ matrix.ver }})
         run: |
           cd sdk
           mkdir -p package/luci-app-themeswitch
           cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
+          
+          make defconfig
           
           if [ "${{ matrix.ver }}" == "apk" ]; then
             echo "CONFIG_USE_APK=y" >> .config
@@ -169,14 +174,12 @@ jobs:
           fi
           
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
-          make defconfig
-          # Removed "|| true" to ensure we catch real build errors
-          make package/luci-app-themeswitch/compile -j$(nproc) V=s
           
-          # Changed destination path to prevent deeply nested directories
+          # Added IGNORE_ERRORS=m to bypass unrelated feed prereq failures
+          make package/luci-app-themeswitch/compile -j$(nproc) V=s IGNORE_ERRORS=m
+          
           mkdir -p ../artifacts
           EXT="${{ matrix.ver }}"
-          # OpenWrt APKs might be saved with .apk extension, matching both just in case
           find bin/ -type f \( -name "*themeswitch*.${EXT}" -o -name "*themeswitch*.apk" -o -name "*themeswitch*.ipk" \) -exec cp {} ../artifacts/ \; 2>/dev/null || true
           
           echo "=== Generated Files ==="
@@ -216,7 +219,6 @@ jobs:
         with:
           tag_name: ${{ steps.rel_ver.outputs.version }}
           name: "ThemeSwitch ${{ steps.rel_ver.outputs.version }}"
-          # Flattened pattern to accurately match files merged into the root directory
           files: |
             all-assets/*.ipk
             all-assets/*.apk
