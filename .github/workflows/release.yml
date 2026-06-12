@@ -159,6 +159,9 @@ jobs:
 
       - name: Configure & Compile (${{ matrix.ver }})
         run: |
+          # Explicitly create the absolute artifact folder in root workspace first
+          mkdir -p ${{ github.workspace }}/artifacts
+          
           cd sdk
           mkdir -p package/luci-app-themeswitch
           cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
@@ -177,26 +180,24 @@ jobs:
           
           make package/luci-app-themeswitch/compile -j$(nproc) V=s IGNORE_ERRORS=m
           
-          mkdir -p ../artifacts
-          # Custom renaming logic to inject the matrix platform and type into the file name
+          # Use absolute workspace paths to safely copy files without nested level bugs
           find bin/ -type f -name "*themeswitch*" | while read -r file; do
             ext="${file##*.}"
-            cp "$file" "../artifacts/luci-app-themeswitch-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}-${{ matrix.ver }}.${ext}"
+            cp "$file" "${{ github.workspace }}/artifacts/luci-app-themeswitch-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}-${{ matrix.ver }}.${ext}"
           done
           
           echo "=== Generated Files ==="
-          ls -la ../artifacts/ || echo "No files!"
+          ls -la ${{ github.workspace }}/artifacts/ || echo "No files!"
 
       - name: Save Version File
         if: matrix.platform == 'x86_64' && matrix.ver == 'ipk'
-        run: echo "${{ steps.get_version.outputs.version }}" > artifacts/version.txt
+        run: echo "${{ steps.get_version.outputs.version }}" > ${{ github.workspace }}/artifacts/version.txt
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
-        continue-on-error: true
         with:
           name: themeswitch-${{ matrix.ver }}-${{ matrix.platform }}
-          path: artifacts/
+          path: ${{ github.workspace }}/artifacts/
           retention-days: 1
           if-no-files-found: error
 
