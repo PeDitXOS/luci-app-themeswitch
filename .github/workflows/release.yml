@@ -1,4 +1,4 @@
-name: Release ThemeSwitch (Final Working Version)
+name: Release ThemeSwitch (Guaranteed Upload)
 
 on:
   workflow_dispatch:
@@ -140,12 +140,9 @@ jobs:
         run: |
           mkdir -p src_projects
           git clone https://github.com/peditx/luci-app-themeswitch.git src_projects/luci-app-themeswitch
-          
-          # ✅ خواندن مستقیم PKG_RELEASE چون PKG_VERSION وجود ندارد
           VER=$(grep '^PKG_RELEASE' src_projects/luci-app-themeswitch/Makefile | awk -F ':=' '{print $2}' | tr -d ' \n\r')
-          if [ -z "$VER" ]; then VER="1.0.5"; fi
+          [ -z "$VER" ] && VER="1.0.5"
           echo "version=v$VER" >> $GITHUB_OUTPUT
-          echo "🏷️ Detected Version from PKG_RELEASE: v$VER"
 
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential libncurses5-dev gawk git gettext unzip zlib1g-dev file python3 curl wget zstd
@@ -163,7 +160,6 @@ jobs:
           mkdir -p package/luci-app-themeswitch
           cp -r ../src_projects/luci-app-themeswitch/* package/luci-app-themeswitch/
           
-          # ✅ حیاتی: تنظیم فرمت خروجی قبل از make defconfig (متد Passwall)
           if [ "${{ matrix.ver }}" == "apk" ]; then
             echo "CONFIG_USE_APK=y" >> .config
             echo "CONFIG_OPKG=n" >> .config
@@ -178,22 +174,24 @@ jobs:
           
           mkdir -p ../artifacts/${{ matrix.ver }}
           EXT="${{ matrix.ver }}"
-          # جستجوی کامل در تمام زیرپوشه‌های bin
           find bin/ -type f -name "*themeswitch*.${EXT}" -exec cp {} ../artifacts/${EXT}/ \; 2>/dev/null || true
           
-          echo "=== Generated ${EXT} Files ==="
-          ls -la ../artifacts/${EXT}/ || echo "⚠️ No ${EXT} files generated!"
+          echo "=== Generated Files ==="
+          ls -la ../artifacts/${EXT}/ || echo "No files!"
 
       - name: Save Version File
         if: matrix.platform == 'x86_64' && matrix.ver == 'ipk'
         run: echo "${{ steps.get_version.outputs.version }}" > artifacts/version.txt
 
-      - uses: actions/upload-artifact@v4
-        if: hashFiles('artifacts/**') != ''
+      # ✅ تغییر حیاتی: حذف شرط if و اضافه کردن continue-on-error
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: themeswitch-${{ matrix.ver }}-${{ matrix.platform }}
           path: artifacts/
           retention-days: 1
+          if-no-files-found: warn
 
   release:
     name: Create Unified Release
@@ -205,7 +203,7 @@ jobs:
           path: all-assets
           merge-multiple: true
 
-      - name: Read Version from Artifact
+      - name: Read Version
         id: rel_ver
         run: |
           VER=$(cat all-assets/version.txt 2>/dev/null || echo "v1.0.5")
@@ -213,7 +211,6 @@ jobs:
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
-        if: hashFiles('all-assets/**') != ''
         with:
           tag_name: ${{ steps.rel_ver.outputs.version }}
           name: "ThemeSwitch ${{ steps.rel_ver.outputs.version }}"
