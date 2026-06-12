@@ -99,7 +99,7 @@ jobs:
             url_sdk: https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa7/openwrt-sdk-sunxi-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a8_vfpv3
-            url_sdk: https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa8/openwrt-sdk-sunxi-cortexa8_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
+            url_sdk: https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa8/openwrt-sdk-sunxi-cortexa8_gcc-14.3.0_musl.Linux-x86_64.tar.zst
             ver: "apk"
           - platform: arm_cortex-a9
             url_sdk: https://downloads.openwrt.org/snapshots/targets/bcm53xx/generic/openwrt-sdk-bcm53xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst
@@ -177,7 +177,6 @@ jobs:
           
           echo -e "CONFIG_PACKAGE_luci-app-themeswitch=m\nCONFIG_LUCI_JSMIN=n\nCONFIG_LUCI_CSSTIDY=n" >> .config
           
-          # Run compilation normally (errors on bad dependencies are skipped by SDK but build check handles validation)
           make package/luci-app-themeswitch/compile -j$(nproc) V=s IGNORE_ERRORS=m
           
           FOUND_FILE=$(find bin/ -type f \( -name "*.ipk" -o -name "*.apk" \) -name "*themeswitch*")
@@ -186,9 +185,10 @@ jobs:
             exit 1
           fi
           
-          # Fixed bad substitution error by cleanly retrieving extension and moving
           echo "Found compiled asset: $FOUND_FILE"
           ext="${FOUND_FILE##*.}"
+          
+          # Distinct naming structure to prevent asset collisions during upload
           cp "$FOUND_FILE" "${{ github.workspace }}/output_packages/luci-app-themeswitch-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}-${{ matrix.ver }}.${ext}"
           
           echo "=== Verified Output Directory ==="
